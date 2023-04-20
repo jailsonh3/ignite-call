@@ -1,13 +1,23 @@
 import { Button, Heading, MultiStep, Text } from '@ignite-ui/react'
 import { signIn, useSession } from 'next-auth/react'
-import { ArrowRight } from 'phosphor-react'
+import { useRouter } from 'next/router'
+import { ArrowRight, Check } from 'phosphor-react'
 
 import { Container, Header } from '../styles'
-import { ConnectItems, ContainerBox } from './styles'
+import { AuthError, ConnectItems, ContainerBox } from './styles'
 
 export default function Register() {
   const session = useSession()
-  // async function handleRegister(data) {}
+  const router = useRouter()
+
+  const hasAuthError = !!router.query.error
+  const isSignedIn = session.status === 'authenticated'
+
+  console.log(session.data)
+
+  async function handleConnectCalendar() {
+    await signIn('google')
+  }
 
   return (
     <Container>
@@ -24,21 +34,31 @@ export default function Register() {
         <ConnectItems>
           <Text>Google Calendar</Text>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => signIn('google')}
-          >
-            Conectar
-            <ArrowRight />
-          </Button>
+          {isSignedIn ? (
+            <Button size="sm" disabled>
+              Conectado
+              <Check />
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleConnectCalendar}
+            >
+              Conectar
+              <ArrowRight />
+            </Button>
+          )}
         </ConnectItems>
 
-        <code>
-          <Text>{JSON.stringify(session.data)}</Text>
-        </code>
+        {hasAuthError && (
+          <AuthError size="sm">
+            Falhar ao se conectar ao Google, verifique se você habilitou as
+            permissões de acesso do Google Calendar.
+          </AuthError>
+        )}
 
-        <Button type="submit">
+        <Button type="submit" disabled={!isSignedIn}>
           Próximo passo
           <ArrowRight />
         </Button>
